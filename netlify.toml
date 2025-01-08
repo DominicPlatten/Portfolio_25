@@ -9,6 +9,7 @@
 
 [build.environment]
   NETLIFY_USE_YARN = "false"
+  SECRETS_SCAN_OMIT_PATHS = "/dist/assets/*"
 
 [build.processing]
   skip_processing = false
