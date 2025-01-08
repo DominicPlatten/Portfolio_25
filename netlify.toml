@@ -16,7 +16,5 @@
 [build.processing.html]
   pretty_urls = true
 
-# Configure secret detection
 [build.processing.secrets]
-  # Exclude Firebase config values from secret scanning
-  exclude = ["VITE_FIREBASE_*"]
+  scan = false
