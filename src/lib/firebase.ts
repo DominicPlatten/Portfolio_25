@@ -4,13 +4,13 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCJOkVgQywbkXaLJ2CQulMKjcAG54OKxIk",
-  authDomain: "portfolio-a174e.firebaseapp.com",
-  projectId: "portfolio-a174e",
-  storageBucket: "portfolio-a174e.firebasestorage.app",
-  messagingSenderId: "267286459732",
-  appId: "1:267286459732:web:346b2f26cb0098d88144c1",
-  measurementId: "G-CEG3P6GW42"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
