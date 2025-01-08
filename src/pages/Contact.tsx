@@ -1,7 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export function Contact() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('submitting');
+    setError('');
+
+    try {
+      // Store the message in Firestore
+      await addDoc(collection(db, 'messages'), {
+        ...formData,
+        createdAt: serverTimestamp()
+      });
+
+      setStatus('success');
+      setFormData({ name: '', email: '', message: '' });
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setStatus('error');
+      setError('Failed to send message. Please try again.');
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
       <h1 className="text-4xl font-light mb-12 text-white">Contact</h1>
@@ -38,7 +74,19 @@ export function Contact() {
           </div>
         </div>
 
-        <form className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {status === 'success' && (
+            <div className="bg-green-500/10 text-green-500 p-4 rounded-md">
+              Message sent successfully! I'll get back to you soon.
+            </div>
+          )}
+
+          {status === 'error' && (
+            <div className="bg-red-500/10 text-red-500 p-4 rounded-md">
+              {error}
+            </div>
+          )}
+
           <div>
             <label htmlFor="name" className="block text-sm text-zinc-300 mb-2">
               Name
@@ -46,7 +94,11 @@ export function Contact() {
             <input
               type="text"
               id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
               className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 text-white focus:border-zinc-500 focus:ring-0 transition-colors duration-200 rounded-md"
+              required
             />
           </div>
 
@@ -57,7 +109,11 @@ export function Contact() {
             <input
               type="email"
               id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 text-white focus:border-zinc-500 focus:ring-0 transition-colors duration-200 rounded-md"
+              required
             />
           </div>
 
@@ -67,16 +123,21 @@ export function Contact() {
             </label>
             <textarea
               id="message"
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
               rows={4}
               className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 text-white focus:border-zinc-500 focus:ring-0 transition-colors duration-200 rounded-md"
+              required
             ></textarea>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-white text-zinc-900 px-6 py-3 hover:bg-zinc-100 transition-colors duration-200 rounded-md"
+            disabled={status === 'submitting'}
+            className="w-full bg-white text-zinc-900 px-6 py-3 hover:bg-zinc-100 transition-colors duration-200 rounded-md disabled:opacity-50"
           >
-            Send Message
+            {status === 'submitting' ? 'Sending...' : 'Send Message'}
           </button>
         </form>
       </div>
