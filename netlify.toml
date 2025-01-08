@@ -6,3 +6,20 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+[build.environment]
+  NETLIFY_USE_YARN = "false"
+
+[build.processing]
+  skip_processing = false
+
+[build.processing.html]
+  pretty_urls = true
+
+# Ignore Firebase config values in secret scanning
+[[plugins]]
+  package = "@netlify/plugin-sitemap"
+
+[[plugins.inputs.exclude]]
+  # Exclude Firebase config values from secret scanning
+  pattern = "VITE_FIREBASE_*"
