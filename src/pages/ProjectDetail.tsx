@@ -43,7 +43,7 @@ export function ProjectDetail() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-32">
         <h1 className="text-4xl font-light mb-4 text-white">{project.title}</h1>
         <div className="flex flex-col gap-4 mb-12">
-          <p className="text-zinc-300">{project.description}</p>
+          <p className="text-zinc-300 whitespace-pre-wrap">{project.description}</p>
           <div className="flex flex-col sm:flex-row sm:gap-x-8">
             <p className="text-sm">
               <span className="text-white">Year:</span>{' '}
@@ -80,7 +80,7 @@ export function ProjectDetail() {
                 </div>
               )}
               {item.description && (
-                <p className="text-zinc-400 text-sm italic">{item.description}</p>
+                <p className="text-zinc-400 text-sm italic whitespace-pre-wrap">{item.description}</p>
               )}
             </div>
           ))}
