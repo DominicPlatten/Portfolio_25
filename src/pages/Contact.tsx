@@ -9,35 +9,21 @@ export function Contact() {
       <div className="space-y-12">
         {/* About Section */}
         <div className="prose prose-lg prose-invert">
-          <p className="text-zinc-300 mb-8">
-            As a passionate game developer with expertise in Unreal Engine and Unity, I've dedicated my career to creating 
-            immersive and engaging digital experiences. My journey began with studying game design, where I developed a strong 
-            foundation in both the technical and creative aspects of game development.
-          </p>
-
-          <h2 className="text-2xl font-light mb-4 text-white">Experience</h2>
-          <p className="text-zinc-300 mb-8">
-            Over the years, I've had the privilege of working on more than 15 diverse applications, collaborating closely 
-            with clients to bring their visions to life. My experience spans from concept development to final implementation, 
-            with a particular focus on creating intuitive user experiences and polished user interfaces.
-          </p>
-
-          <h2 className="text-2xl font-light mb-4 text-white">Approach</h2>
-          <p className="text-zinc-300 mb-12">
-            I believe in a collaborative approach to development, working closely with clients to understand their needs 
-            and translate them into effective solutions. Whether it's designing game mechanics, optimizing performance, 
-            or crafting user interfaces, I'm committed to delivering high-quality results that exceed expectations.
-          </p>
+          <div className="text-zinc-300 border-l-2 border-zinc-700 pl-6">
+            <p className="mb-6">
+              "Hi, I'm Dominic Platten, a game designer and developer from Switzerland with a passion for creating immersive, user-friendly digital experiences."
+            </p>
+            <p className="mb-6">
+              "I began my career developing VR applications to train airport safety personnel and later collaborated with architecture agencies to design apps for clients like Steiner and Implenia. With a strong focus on UX and UI, I craft solutions that are visually appealing and intuitive across touch, VR, and keyboard interfaces."
+            </p>
+            <p>
+              "Feel free to explore my work and get in touch—I'm always eager to collaborate on innovative projects."
+            </p>
+          </div>
         </div>
 
         {/* Contact Section */}
         <div>
-          <h2 className="text-2xl font-light mb-6 text-white">Contact</h2>
-          <p className="text-zinc-300 mb-8">
-            I'm always interested in discussing new projects and opportunities.
-            Get in touch to start a conversation about your next project.
-          </p>
-
           <div className="space-y-4">
             <div className="flex items-center">
               <Mail className="h-5 w-5 mr-3 text-zinc-400" />
