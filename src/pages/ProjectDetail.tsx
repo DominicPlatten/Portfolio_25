@@ -18,13 +18,11 @@ export function ProjectDetail() {
     return <div className="text-white">Project not found</div>;
   }
 
-  // Handle both old and new category structure
   const projectCategories = categories
     .filter(cat => {
       if (Array.isArray(project.categories)) {
         return project.categories.includes(cat.id);
       }
-      // Handle legacy single category
       return project.category === cat.id;
     })
     .map(cat => cat.name)
@@ -73,7 +71,7 @@ export function ProjectDetail() {
                     src={item.url}
                     controls
                     className="w-full h-full object-contain"
-                    poster={project.coverImage}
+                    poster={item.posterUrl || project.thumbnail || project.coverImage}
                   >
                     Your browser does not support the video tag.
                   </video>

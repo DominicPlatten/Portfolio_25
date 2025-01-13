@@ -2,6 +2,7 @@ export interface MediaItem {
   url: string;
   description: string;
   type: 'image' | 'video';
+  posterUrl?: string;  // Optional thumbnail for videos
 }
 
 export interface Project {
