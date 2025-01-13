@@ -29,7 +29,7 @@ export function ProjectGrid({ projects, selectedCategory }: ProjectGridProps) {
         >
           <div className="aspect-square overflow-hidden rounded-lg">
             <img
-              src={project.coverImage}
+              src={project.thumbnail || project.coverImage}
               alt={project.title}
               className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
             />

@@ -37,7 +37,7 @@ export function ProjectDetail() {
         className="fixed top-24 left-4 md:left-8 z-10 flex items-center text-sm text-zinc-400 hover:text-white transition-colors duration-200"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
-        Back
+        Back to Projects
       </Link>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-32">

@@ -7,9 +7,10 @@ export interface MediaItem {
 export interface Project {
   id: string;
   title: string;
-  categories: string[];  // Changed from single category to array
+  categories: string[];
   description: string;
   year: number;
+  thumbnail: string;
   coverImage: string;
   media: MediaItem[];
   order: number;

@@ -3,7 +3,7 @@ import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } f
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../lib/firebase';
 import { useCategories } from '../../hooks/useCategories';
-import { Plus } from 'lucide-react';
+import { Plus, GripVertical } from 'lucide-react';
 
 interface ProjectFormProps {
   onClose: () => void;
@@ -19,6 +19,7 @@ export function ProjectForm({ onClose }: ProjectFormProps) {
   const [description, setDescription] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [media, setMedia] = useState<Array<{ file: File; description: string }>>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +60,13 @@ export function ProjectForm({ onClose }: ProjectFormProps) {
     setMedia(updatedMedia);
   };
 
+  const reorderMedia = (dragIndex: number, dropIndex: number) => {
+    const newMedia = [...media];
+    const [draggedItem] = newMedia.splice(dragIndex, 1);
+    newMedia.splice(dropIndex, 0, draggedItem);
+    setMedia(newMedia);
+  };
+
   const handleCategoryToggle = (categoryId: string) => {
     setSelectedCategories(prev => 
       prev.includes(categoryId)
@@ -82,6 +90,14 @@ export function ProjectForm({ onClose }: ProjectFormProps) {
       const orderSnapshot = await getDocs(orderQuery);
       const maxOrder = orderSnapshot.empty ? 0 : orderSnapshot.docs[0].data().order || 0;
 
+      // Upload thumbnail if provided
+      let thumbnailUrl = '';
+      if (thumbnail) {
+        const thumbnailRef = ref(storage, `projects/thumbnails/${Date.now()}_${thumbnail.name}`);
+        await uploadBytes(thumbnailRef, thumbnail);
+        thumbnailUrl = await getDownloadURL(thumbnailRef);
+      }
+
       const uploadedMedia = await Promise.all(
         media.map(async ({ file, description }) => {
           const type = validateFile(file);
@@ -99,8 +115,9 @@ export function ProjectForm({ onClose }: ProjectFormProps) {
         description,
         categories: selectedCategories,
         year,
-        media: uploadedMedia,
+        thumbnail: thumbnailUrl,
         coverImage,
+        media: uploadedMedia,
         order: maxOrder + 1,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -143,6 +160,17 @@ export function ProjectForm({ onClose }: ProjectFormProps) {
           rows={4}
           required
         />
+      </div>
+
+      <div>
+        <label className="block text-sm text-zinc-300">Thumbnail</label>
+        <input
+          type="file"
+          accept={ALLOWED_IMAGE_TYPES.join(',')}
+          onChange={(e) => e.target.files && setThumbnail(e.target.files[0])}
+          className="mt-1 block w-full text-zinc-300"
+        />
+        <p className="mt-1 text-sm text-zinc-400">Optional. If not provided, the first media item will be used as thumbnail.</p>
       </div>
 
       <div>
@@ -208,8 +236,37 @@ export function ProjectForm({ onClose }: ProjectFormProps) {
 
         <div className="space-y-4">
           {media.map((item, index) => (
-            <div key={index} className="relative border border-zinc-600 rounded-lg p-4">
+            <div
+              key={index}
+              className="relative border border-zinc-600 rounded-lg p-4"
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('text/plain', index.toString());
+                e.currentTarget.classList.add('opacity-50');
+              }}
+              onDragEnd={(e) => {
+                e.currentTarget.classList.remove('opacity-50');
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.add('border-white');
+              }}
+              onDragLeave={(e) => {
+                e.currentTarget.classList.remove('border-white');
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('border-white');
+                const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                if (dragIndex !== index) {
+                  reorderMedia(dragIndex, index);
+                }
+              }}
+            >
               <div className="flex items-start space-x-4">
+                <div className="flex items-center">
+                  <GripVertical className="h-4 w-4 text-zinc-400 cursor-move" />
+                </div>
                 <div className="w-32 h-32 bg-zinc-700 rounded-md overflow-hidden flex-shrink-0">
                   {ALLOWED_IMAGE_TYPES.includes(item.file.type) ? (
                     <img

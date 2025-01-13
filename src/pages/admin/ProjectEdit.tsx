@@ -6,7 +6,7 @@ import { db, storage } from '../../lib/firebase';
 import { useProjects } from '../../hooks/useProjects';
 import { useCategories } from '../../hooks/useCategories';
 import { MediaItem } from '../../types';
-import { Plus, X } from 'lucide-react';
+import { Plus, GripVertical, X } from 'lucide-react';
 
 const MAX_MEDIA_ITEMS = 10;
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
@@ -20,18 +20,18 @@ export function ProjectEdit() {
   const { categories } = useCategories();
   const project = projects.find(p => p.id === id);
 
-  // Initialize state with project data
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: '',
     year: new Date().getFullYear(),
+    thumbnail: '',
     media: [] as MediaItem[]
   });
+  const [newThumbnail, setNewThumbnail] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Update form data when project loads
   useEffect(() => {
     if (project) {
       setFormData({
@@ -39,18 +39,11 @@ export function ProjectEdit() {
         description: project.description,
         category: project.category,
         year: project.year,
+        thumbnail: project.thumbnail || '',
         media: project.media || []
       });
     }
   }, [project]);
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-
-  if (!project) {
-    return <div>Project not found</div>;
-  }
 
   const validateFile = (file: File) => {
     if (file.size > MAX_FILE_SIZE) {
@@ -120,14 +113,54 @@ export function ProjectEdit() {
     }));
   };
 
+  const reorderMedia = (dragIndex: number, dropIndex: number) => {
+    const newMedia = [...formData.media];
+    const [draggedItem] = newMedia.splice(dragIndex, 1);
+    newMedia.splice(dropIndex, 0, draggedItem);
+    setFormData(prev => ({ ...prev, media: newMedia }));
+  };
+
+  const handleRemoveThumbnail = async () => {
+    if (formData.thumbnail) {
+      try {
+        const fileRef = ref(storage, formData.thumbnail);
+        await deleteObject(fileRef);
+        setFormData(prev => ({ ...prev, thumbnail: '' }));
+      } catch (error) {
+        console.error('Error removing thumbnail:', error);
+        setError('Error removing thumbnail');
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
     setError(null);
 
     try {
-      await updateDoc(doc(db, 'projects', project.id), {
+      let thumbnailUrl = formData.thumbnail;
+
+      // Upload new thumbnail if provided
+      if (newThumbnail) {
+        const thumbnailRef = ref(storage, `projects/thumbnails/${Date.now()}_${newThumbnail.name}`);
+        await uploadBytes(thumbnailRef, newThumbnail);
+        thumbnailUrl = await getDownloadURL(thumbnailRef);
+
+        // Delete old thumbnail if it exists
+        if (formData.thumbnail) {
+          try {
+            const oldThumbnailRef = ref(storage, formData.thumbnail);
+            await deleteObject(oldThumbnailRef);
+          } catch (error) {
+            console.error('Error deleting old thumbnail:', error);
+          }
+        }
+      }
+
+      await updateDoc(doc(db, 'projects', project!.id), {
         ...formData,
+        thumbnail: thumbnailUrl,
         updatedAt: serverTimestamp(),
       });
 
@@ -139,6 +172,14 @@ export function ProjectEdit() {
       setUploading(false);
     }
   };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!project) {
+    return <div>Project not found</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
@@ -172,6 +213,34 @@ export function ProjectEdit() {
               rows={4}
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-700">Thumbnail</label>
+            {formData.thumbnail ? (
+              <div className="mt-2 relative w-32 h-32">
+                <img
+                  src={formData.thumbnail}
+                  alt="Thumbnail"
+                  className="w-full h-full object-cover rounded-md"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveThumbnail}
+                  className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <input
+                type="file"
+                accept={ALLOWED_IMAGE_TYPES.join(',')}
+                onChange={(e) => e.target.files && setNewThumbnail(e.target.files[0])}
+                className="mt-1 block w-full text-gray-700"
+              />
+            )}
+            <p className="mt-1 text-sm text-gray-500">Optional. If not provided, the first media item will be used as thumbnail.</p>
           </div>
 
           <div>
@@ -231,8 +300,37 @@ export function ProjectEdit() {
 
             <div className="space-y-4">
               {formData.media.map((item, index) => (
-                <div key={index} className="relative border rounded-lg p-4">
+                <div
+                  key={index}
+                  className="relative border rounded-lg p-4"
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/plain', index.toString());
+                    e.currentTarget.classList.add('opacity-50');
+                  }}
+                  onDragEnd={(e) => {
+                    e.currentTarget.classList.remove('opacity-50');
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.add('border-white');
+                  }}
+                  onDragLeave={(e) => {
+                    e.currentTarget.classList.remove('border-white');
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove('border-white');
+                    const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                    if (dragIndex !== index) {
+                      reorderMedia(dragIndex, index);
+                    }
+                  }}
+                >
                   <div className="flex items-start space-x-4">
+                    <div className="flex items-center">
+                      <GripVertical className="h-4 w-4 text-gray-400 cursor-move" />
+                    </div>
                     <div className="w-32 h-32 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
                       {item.type === 'image' ? (
                         <img
